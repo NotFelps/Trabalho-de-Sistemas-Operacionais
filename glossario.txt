@@ -1,0 +1,1 @@
+código = vetor que detem em cada indice a operacao (objeto pronto) de um dos processos do arquivo

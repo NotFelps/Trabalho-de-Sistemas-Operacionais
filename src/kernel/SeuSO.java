@@ -1,103 +1,132 @@
 package kernel;
+import java.util.HashMap;
 import java.util.List;
+
 
 import operacoes.Operacao;
 import operacoes.OperacaoES;
 
 public class SeuSO extends SO {
 
+	PCB pcbnovo;
+	//HashMap<Integer, OperacaoES[]> listaES = new HashMap<Integer, OperacaoES[]>();
+	int criaIdProcesso = 0;    //usado para criar o id de processo na ordem certa na função "criaProcesso"
+
 	@Override
 	// ATENCÃO: cria o processo mas o mesmo 
 	// só estará "pronto" no próximo ciclo
 	protected void criaProcesso(Operacao[] codigo) {
-		// TODO Auto-generated method stub
+		PCB pcb = new PCB();
+		pcb.idProcesso = criaIdProcesso;
+		criaIdProcesso++;
+		pcb.estado = PCB.Estado.NOVO;
+		pcb.contadorDePrograma = 0;  //número de operações finalizadas
+		pcb.codigo = codigo;
+		pcbnovo = pcb;
 	}
 
 	@Override
 	protected void trocaContexto(PCB pcbAtual, PCB pcbProximo) {
-		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	// Assuma que 0 <= idDispositivo <= 4
 	protected OperacaoES proximaOperacaoES(int idDispositivo) {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
 	@Override
 	protected Operacao proximaOperacaoCPU() {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
 	@Override
-	protected void executaCicloKernel() {
-		// TODO Auto-generated method stub
+	protected void executaCicloKernel() {   //complexo
+		
 	}
 
 	@Override
 	protected boolean temTarefasPendentes() {
-		// TODO Auto-generated method stub
+		
 		return false;
 	}
 
 	@Override
 	protected Integer idProcessoNovo() {
-		// TODO Auto-generated method stub
-		return null;
+		return pcbnovo.idProcesso;
 	}
 
 	@Override
 	protected List<Integer> idProcessosProntos() {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
 	@Override
 	protected Integer idProcessoExecutando() {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
 	@Override
 	protected List<Integer> idProcessosEsperando() {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
 	@Override
 	protected List<Integer> idProcessosTerminados() {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
+
+	//////////////////////////////////////////////////////////
+
 	@Override
 	protected int tempoEsperaMedio() {
-		// TODO Auto-generated method stub
+		
 		return 0;
 	}
 
 	@Override
 	protected int tempoRespostaMedio() {
-		// TODO Auto-generated method stub
+		
 		return 0;
 	}
 
 	@Override
 	protected int tempoRetornoMedio() {
-		// TODO Auto-generated method stub
+		
+		return 0;
+	}
+	
+	@Override
+	protected int trocasContexto() {
+		
 		return 0;
 	}
 
-	@Override
-	protected int trocasContexto() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	//////////////////////////////////////////////////////////
 
 	@Override
 	public void defineEscalonador(Escalonador e) {
-		// TODO Auto-generated method stub
+		
+		switch (e) {
+			case  FIRST_COME_FIRST_SERVED:
+			break;
+
+			case  SHORTEST_JOB_FIRST:
+			break;
+
+			case SHORTEST_REMANING_TIME_FIRST :
+			break;
+			
+			case ROUND_ROBIN_QUANTUM_5 :
+			break;
+		}
 	}
 }
