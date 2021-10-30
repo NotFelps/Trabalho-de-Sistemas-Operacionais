@@ -32,7 +32,7 @@ public class SeuSO extends SO {
 
 	@Override
 	// Assuma que 0 <= idDispositivo <= 4
-	protected OperacaoES proximaOperacaoES(int idDispositivo) {
+	protected OperacaoES proximaOperacaoES(int idDispositivo) { //recebe como parametro o dispositivo e retorna qual a proxima operacao a ser realizada no mesmo, por isso eh necessario guardar uma estrutura com cada uma das operacoes de cada um dos dispositivos
 		
 		return null;
 	}

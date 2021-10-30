@@ -1,1 +1,3 @@
-código = vetor que detem em cada indice a operacao (objeto pronto) de um dos processos do arquivo
+Operacao[] = vetor com os indices representando cada um uma operacao (objeto)
+código (nome do vetor operacao em 1 caso)= vetor que detem em cada indice a operacao (objeto pronto) de um dos processos do arquivo
+novosProcessos = hashMap com o instante de chegada como chave e um vetor com cada uma das operações do processo em seguida
