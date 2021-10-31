@@ -12,6 +12,7 @@ import operacoes.Soma;
 
 public abstract class SO {
 
+	protected int numeroProcessos;
 	protected Processador processador = new Processador();
 	private HashMap<Integer, Operacao[]> novosProcessos = new HashMap<Integer, Operacao[]>();
 	private int contadorCiclos = 0;
@@ -130,6 +131,7 @@ public abstract class SO {
 
 			novosProcessos.put(instanteChegada, codigo);
 		}
+		numeroProcessos = nProcessos;
 	}
 
 	protected abstract void criaProcesso(Operacao[] codigo);
