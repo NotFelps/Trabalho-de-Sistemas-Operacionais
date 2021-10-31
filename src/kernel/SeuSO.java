@@ -13,9 +13,9 @@ public class SeuSO extends SO {
 	//HashMap<Integer, OperacaoES[]> listaES = new HashMap<Integer, OperacaoES[]>();
 	int criaIdProcesso = 0;    //usado para criar o id de processo na ordem certa na função "criaProcesso"
 
-	List<PCB> prontos = new ArrayList<PCB>();     //processos prontos para serem executados
-	List<PCB> esperando = new ArrayList<PCB>();    //processos esperando operacaoES
-	List<PCB> terminados = new ArrayList<PCB>();    //processos terminados
+	List<PCB> prontos = new LinkedList<PCB>();     //processos prontos para serem executados
+	List<PCB> esperando = new LinkedList<PCB>();    //processos esperando operacaoES
+	List<PCB> terminados = new LinkedList<PCB>();    //processos terminados
 	
 	PCB executandoCPU;
 
@@ -24,13 +24,38 @@ public class SeuSO extends SO {
 	public void verificaEsperando() {
         for(PCB p : esperando) {
 			OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];
-            if(aux.ciclos <= 0) {
-				if(p.codigo[p.contadorDePrograma+1] instanceof OperacaoES) {
-					int aux = 
+			OperacaoES aux2 = (OperacaoES) p.codigo[p.contadorDePrograma+1];
+            if(aux.ciclos <= 0) {    //operacao acabou e processo precisa mudar de lugar
+				if(p.codigo[p.contadorDePrograma+1] == null) {   //tenho q colocar na lista de terminados e tirar da esperando
+					esperando.remove(p);
+					terminados.add(p);
+				}
+				if(p.codigo[p.contadorDePrograma+1] instanceof OperacaoES) {    //caso ele tenha uma operacaoES pra fazer no proximo indice de "codigo"
+					switch (aux2.idDispositivo) {
+						case 0 :
+						listaD0.add(aux2);       //nao mexo na lista de prontos pq o processo ja estava nela nesse caso
+						break;
+
+						case 1 :
+							listaD1.add(aux2);
+						break;
+
+						case 2 :
+							listaD2.add(aux2);
+						break;
+
+						case 3 :
+							listaD3.add(aux2);
+						break;
+
+						case 4 :
+							listaD4.add(aux2);
+						break;
+					}
 				}
 			}
         }
-    }
+    }   
 
 	//////////////////////////////////////////////////////////////////////
 
@@ -48,6 +73,8 @@ public class SeuSO extends SO {
 	OperacaoES opatualES_D2;
 	OperacaoES opatualES_D3;
 	OperacaoES opatualES_D4;
+
+	//////////////////////////////////////////////////////////////////////
 
 	@Override
 	// ATENCÃO: cria o processo mas o mesmo 
@@ -137,6 +164,7 @@ public class SeuSO extends SO {
 				if(opatualES_D4.ciclos > 0) {
 					return opatualES_D4;
 				} else {
+					if(listaD4 == null) return null;  //TESTE
 					opatualES_D4 = listaD4.poll();
 					if(opatualES_D4 != null) return opatualES_D4;
 				}
