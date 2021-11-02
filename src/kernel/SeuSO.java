@@ -8,7 +8,7 @@ import escalonadores.*;
 
 public class SeuSO extends SO {
 
-	int trocasContexto;
+	int trocasContexto = 0;
 	PCB pcbnovo, pcbaux;
 	//HashMap<Integer, OperacaoES[]> listaES = new HashMap<Integer, OperacaoES[]>();
 	int criaIdProcesso = 0;    //usado para criar o id de processo na ordem certa na função "criaProcesso"
@@ -23,38 +23,42 @@ public class SeuSO extends SO {
 
 	public void verificaEsperando() {
         for(PCB p : esperando) {
-			OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];
-			OperacaoES aux2 = (OperacaoES) p.codigo[p.contadorDePrograma+1];
+			OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];       //Operacao atual (com certeza ES)
+			Operacao aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
             if(aux.ciclos <= 0) {    //operacao acabou e processo precisa mudar de lugar
-				if(p.codigo[p.contadorDePrograma+1] == null) {   //tenho q colocar na lista de terminados e tirar da esperando
-					esperando.remove(p);
-					terminados.add(p);
+				if(aux2 == null) {   //tenho q colocar na lista de terminados e tirar da esperando
+					esperando.remove(p);     //tira da lista de esperando
+					terminados.add(p);    //coloca na lista de terminados
+					p.contadorDePrograma++;
 				}
-				if(p.codigo[p.contadorDePrograma+1] instanceof OperacaoES) {    //caso ele tenha uma operacaoES pra fazer no proximo indice de "codigo"
-					switch (aux2.idDispositivo) {
+
+				if(aux2 instanceof OperacaoES) {    //caso ele tenha uma operacaoES pra fazer no proximo indice de "codigo"
+				OperacaoES auxES = (OperacaoES) aux2;
+					switch (auxES.idDispositivo) {
 						case 0 :
-						listaD0.add(aux2);       //nao mexo na lista de prontos pq o processo ja estava nela nesse caso
+						listaD0.add(auxES);       //nao mexo na lista de prontos pq o processo ja estava nela nesse caso
 						break;
 
 						case 1 :
-							listaD1.add(aux2);
+							listaD1.add(auxES);
 						break;
 
 						case 2 :
-							listaD2.add(aux2);
+							listaD2.add(auxES);
 						break;
 
 						case 3 :
-							listaD3.add(aux2);
+							listaD3.add(auxES);
 						break;
 
 						case 4 :
-							listaD4.add(aux2);
+							listaD4.add(auxES);
 						break;
 					}
 				}
 			}
         }
+
     }   
 
 	//////////////////////////////////////////////////////////////////////
@@ -62,7 +66,7 @@ public class SeuSO extends SO {
 
 	//criar uma linkedlist pra cada dispositivo
 	Queue<OperacaoES> listaD0 = new LinkedList<>();    //fila dispositivo 0
-	Queue<OperacaoES> listaD1 = new LinkedList<>();	  //fila dispositivo 1
+	Queue<OperacaoES> listaD1 = new LinkedList<>();	   //fila dispositivo 1
 	Queue<OperacaoES> listaD2 = new LinkedList<>();    //fila dispositivo 2
 	Queue<OperacaoES> listaD3 = new LinkedList<>();    //fila dispositivo 3
 	Queue<OperacaoES> listaD4 = new LinkedList<>();    //fila dispositivo 4
@@ -309,8 +313,7 @@ public class SeuSO extends SO {
 	
 	@Override
 	protected int trocasContexto() {
-		
-		return 0;
+		return trocasContexto;
 	}
 
 	//////////////////////////////////////////////////////////
