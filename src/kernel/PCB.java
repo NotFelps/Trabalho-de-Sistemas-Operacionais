@@ -6,7 +6,7 @@ public class PCB { //sugestão do prof : public class PCB implements Comparable<
 	public int idProcesso; // primeiro processo criado deve ter id = 0
 	public Estado estado = Estado.NOVO;
 	public int[] registradores = new int[5];
-	public int contadorDePrograma;
+	public int contadorDePrograma;     //começa em 0
 	public Operacao[] codigo;
 
 	/*

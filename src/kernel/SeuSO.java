@@ -2,6 +2,8 @@ package kernel;
 import java.util.*;
 
 import kernel.PCB.Estado;
+import operacoes.*;
+//import operacoes.Carrega;
 import operacoes.Operacao;
 import operacoes.OperacaoES;
 import escalonadores.*;
@@ -22,43 +24,56 @@ public class SeuSO extends SO {
 	//////////////////////////////////////////////////////////////////////
 
 	public void verificaEsperando() {
-        for(PCB p : esperando) {
-			OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];       //Operacao atual (com certeza ES)
-			Operacao aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
-            if(aux.ciclos <= 0) {    //operacao acabou e processo precisa mudar de lugar
-				if(aux2 == null) {   //tenho q colocar na lista de terminados e tirar da esperando
-					esperando.remove(p);     //tira da lista de esperando
-					terminados.add(p);    //coloca na lista de terminados
-					p.contadorDePrograma++;
-				}
+        if(esperando != null) {
+			for(PCB p : esperando) {
+				OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];       //Operacao atual (com certeza ES)
+				Operacao aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
+				if(aux.ciclos <= 0) {    //operacao acabou e processo precisa mudar de lugar
+					if(aux2 == null) {   //tenho q colocar na lista de terminados e tirar da esperando
+						esperando.remove(p);     //tira da lista de esperando
+						terminados.add(p);    //coloca na lista de terminados
+						p.estado = Estado.TERMINADO;
+						//processo finalizado   
+					}
 
-				if(aux2 instanceof OperacaoES) {    //caso ele tenha uma operacaoES pra fazer no proximo indice de "codigo"
-				OperacaoES auxES = (OperacaoES) aux2;
-					switch (auxES.idDispositivo) {
-						case 0 :
-						listaD0.add(auxES);       //nao mexo na lista de prontos pq o processo ja estava nela nesse caso
-						break;
+					if(aux2 instanceof OperacaoES) {    //caso ele tenha uma operacaoES pra fazer no proximo índice de "codigo"
+					OperacaoES auxES = (OperacaoES) aux2;     //auxES é a proxima operacao do processo, sendo ela com certeza de entrada e saida
+						switch (auxES.idDispositivo) {
+							case 0 :
+								listaD0.add(auxES);       //nao mexo na lista de esperando pq o processo ja estava nela nesse caso, só adiciono na lista do dispositivo em questão
+								p.contadorDePrograma++;
+							break;
 
-						case 1 :
-							listaD1.add(auxES);
-						break;
+							case 1 :
+								listaD1.add(auxES);
+								p.contadorDePrograma++;
+							break;
 
-						case 2 :
-							listaD2.add(auxES);
-						break;
+							case 2 :
+								listaD2.add(auxES);
+								p.contadorDePrograma++;
+							break;
 
-						case 3 :
-							listaD3.add(auxES);
-						break;
+							case 3 :
+								listaD3.add(auxES);
+								p.contadorDePrograma++;
+							break;
 
-						case 4 :
-							listaD4.add(auxES);
-						break;
+							case 4 :
+								listaD4.add(auxES);
+								p.contadorDePrograma++;
+							break;
+						}
+					}
+
+					if(aux2 instanceof Soma || aux2 instanceof Carrega) {      //se for uma operacao de soma ou carrega deve-se colocar o processo na fila de prontos
+						esperando.remove(p);
+						prontos.add(p);
+						p.estado = Estado.PRONTO;
 					}
 				}
 			}
-        }
-
+		}
     }   
 
 	//////////////////////////////////////////////////////////////////////
@@ -183,7 +198,7 @@ public class SeuSO extends SO {
 	}
 
 	@Override
-	protected Operacao proximaOperacaoCPU() {	
+	protected Operacao proximaOperacaoCPU() {	//Apenas retorna a operação atual que está dentro de "executandoCPU"
 		return executandoCPU.codigo[executandoCPU.contadorDePrograma];
 	}
 
