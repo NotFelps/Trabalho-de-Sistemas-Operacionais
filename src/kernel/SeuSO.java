@@ -199,6 +199,7 @@ public class SeuSO extends SO {
 
 	@Override
 	protected Operacao proximaOperacaoCPU() {	//Apenas retorna a operação atual que está dentro de "executandoCPU"
+		executandoCPU.contadorDePrograma++;
 		return executandoCPU.codigo[executandoCPU.contadorDePrograma];
 	}
 
