@@ -19,16 +19,45 @@ public class SeuSO extends SO {
 	List<PCB> esperando = new LinkedList<PCB>();    //processos esperando operacaoES
 	List<PCB> terminados = new LinkedList<PCB>();    //processos terminados
 	
+	int escalonadorEscolhido;
+	int numeroProcessos;
 	PCB executandoCPU;
+	Integer processoCriado;
+
 
 	//////////////////////////////////////////////////////////////////////
 
 	public void verificaEsperando() {
         if(esperando != null) {
 			for(PCB p : esperando) {
+				Operacao aux2 = null;
 				OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];       //Operacao atual (com certeza ES)
-				Operacao aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
+				if(p.contadorDePrograma != (p.codigo.length-1) ) aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
 				if(aux.ciclos <= 0) {    //operacao acabou e processo precisa mudar de lugar
+
+					//esse switch zera as variaveis auxiliares do dispositivo cuja ES ja acabou
+					switch(aux.idDispositivo) {
+						case 0 :
+							opatualES_D0 = null;
+							break;
+
+						case 1 :
+							opatualES_D1 = null;
+							break;
+
+						case 2 :
+							opatualES_D2 = null;
+							break;
+
+						case 3 :
+							opatualES_D3 = null;
+							break;
+
+						case 4 :
+							opatualES_D4 = null;
+							break;
+					}
+
 					if(aux2 == null) {   //tenho q colocar na lista de terminados e tirar da esperando
 						esperando.remove(p);     //tira da lista de esperando
 						terminados.add(p);    //coloca na lista de terminados
@@ -106,6 +135,7 @@ public class SeuSO extends SO {
 		pcb.contadorDePrograma = 0;  //número de operações finalizadas
 		pcb.codigo = codigo;
 		pcbnovo = pcb;
+		numeroProcessos++;
 	}
 
 	@Override
@@ -120,91 +150,78 @@ public class SeuSO extends SO {
 	// Assuma que 0 <= idDispositivo <= 4
 	protected OperacaoES proximaOperacaoES(int idDispositivo) { //recebe como parametro o dispositivo e retorna qual a proxima operacao a ser realizada no mesmo, por isso eh necessario guardar uma estrutura com cada uma das operacoes de cada um dos dispositivos
 
+		//Primeiramente deve-se colocar o primeiro processo de cada lista em sua respectiva variavel auxiliar
 		switch(idDispositivo) {
 
 			case 0 :
+				if(!listaD0.isEmpty()) {
+					if(opatualES_D0 == null) opatualES_D0 = listaD0.poll();
+				}
 				if(opatualES_D0 != null) {
 					if(opatualES_D0.ciclos > 0) {
 						return opatualES_D0;
-					} else {
-						opatualES_D0 = listaD0.poll();
-						if(opatualES_D0 != null) return opatualES_D0;
 					}
-				} else if(listaD0 != null) {
-					opatualES_D0 = listaD0.poll();
-					return opatualES_D0;	
-				}	
+				} 
 				break;
 
 			case 1 :
+				if(!listaD1.isEmpty()) {
+					if(opatualES_D1 == null) opatualES_D1 = listaD1.poll();
+				}
 				if(opatualES_D1 != null) {
 					if(opatualES_D1.ciclos > 0) {
 						return opatualES_D1;
-					} else {
-						opatualES_D1 = listaD1.poll();
-						if(opatualES_D1 != null) return opatualES_D1;
 					}
-				} else if(listaD1 != null) {
-					opatualES_D1 = listaD1.poll();
-					return opatualES_D1;
-				}
+				} 
 				break;
 
 			case 2 :
+				if(!listaD2.isEmpty()) {
+					if(opatualES_D2 == null) opatualES_D2 = listaD2.poll();
+				}
 				if(opatualES_D2 != null) {
 					if(opatualES_D2.ciclos > 0) {
 						return opatualES_D2;
-					} else {
-						opatualES_D2 = listaD2.poll();
-						if(opatualES_D2 != null) return opatualES_D2;
-					}
-				} else if(listaD2 != null) {
-					opatualES_D2 = listaD2.poll();
-					return opatualES_D2;
+					} 
 				}
 				break;
 
 			case 3 :
+				if(!listaD3.isEmpty()) {
+					if(opatualES_D3 == null) opatualES_D3 = listaD3.poll();
+				}
 				if(opatualES_D3 != null) {
 					if(opatualES_D3.ciclos > 0) {
 						return opatualES_D3;
-					} else {
-						opatualES_D3 = listaD3.poll();
-						if(opatualES_D3 != null) return opatualES_D3;
 					}
-				} else if(listaD3 != null) {
-					opatualES_D3 = listaD3.poll();
-					return opatualES_D3;
 				}
 				break;
 
 			case 4 :
+				if(!listaD4.isEmpty()) {
+					if(opatualES_D4 == null) opatualES_D4 = listaD4.poll();
+				}
 			if(opatualES_D4 != null) {
 				if(opatualES_D4.ciclos > 0) {
 					return opatualES_D4;
-				} else {
-					if(listaD4 == null) return null;  //TESTE
-					opatualES_D4 = listaD4.poll();
-					if(opatualES_D4 != null) return opatualES_D4;
 				}
-			} else if(listaD4 != null) {
-				opatualES_D4 = listaD4.poll();
-				return opatualES_D4;
-			}
+			} 
 				break;
-					
+				
 	    }
 		return null;
 	}
 
 	@Override
 	protected Operacao proximaOperacaoCPU() {	//Apenas retorna a operação atual que está dentro de "executandoCPU"
-		executandoCPU.contadorDePrograma++;
-		return executandoCPU.codigo[executandoCPU.contadorDePrograma];
+		if(executandoCPU != null) return executandoCPU.codigo[executandoCPU.contadorDePrograma];
+		return null;
 	}
 
 	@Override
-	protected void executaCicloKernel() {   //complexo
+	protected void executaCicloKernel() {
+		
+		processoCriado = null;
 		//Verificar processos criados e colocar em seu devido estado/fila	
 		if(pcbaux != null)	{
 			pcbaux.estado = Estado.PRONTO;
@@ -212,8 +229,10 @@ public class SeuSO extends SO {
 			pcbaux = null;
 		}
 
-		if(prontos.get(0) != null) {
+		verificaEsperando(); //arruma todas as listas dos dispositivos de ES
 
+		if(!prontos.isEmpty()) {
+			
 			//se o indice no contador de programa for uma operacao de ES
 			if(prontos.get(0).codigo[prontos.get(0).contadorDePrograma] instanceof OperacaoES) {
 				OperacaoES aux = (OperacaoES) prontos.get(0).codigo[prontos.get(0).contadorDePrograma];
@@ -257,7 +276,25 @@ public class SeuSO extends SO {
 
 		//AGORA TEMOS QUE CHAMAR O ESCALONADOR EM QUESTAO PARA ORGANIZAR A FILA DE PRONTOS
 
+		switch (escalonadorEscolhido) {
+			case 0 :     //Lista de prontos eh por ordem de chegada, entao nao deve ser arrumada
+			
+			break;
+
+			case 1 :
+			break;
+
+			case 2 :
+			break;
+
+			case 3 :
+			break;
+		}
+
+
+		///////////////////////////////////////////////////////////////////////////////
 		pcbaux = pcbnovo;
+		if(pcbnovo != null) processoCriado = Integer.valueOf(pcbnovo.idProcesso);  //guarda id do processo novo desse ciclo
 		pcbnovo = null;
 	}
 
@@ -268,7 +305,10 @@ public class SeuSO extends SO {
 
 	@Override
 	protected Integer idProcessoNovo() {
-		return pcbnovo.idProcesso;
+		if(processoCriado != null) {
+			return processoCriado;
+		}
+		return null;
 	}
 
 	@Override
@@ -283,7 +323,8 @@ public class SeuSO extends SO {
 
 	@Override
 	protected Integer idProcessoExecutando() {
-		return executandoCPU.idProcesso;
+		if(executandoCPU != null) return executandoCPU.idProcesso;
+		return null;
 	}
 
 	@Override
@@ -311,8 +352,8 @@ public class SeuSO extends SO {
 
 	@Override
 	protected int tempoEsperaMedio() {
-		
-		return 0;
+		return 0;             //TIRAR DO COMENTARIO QUANDO CRIAR A VARIAVEL
+		//return (tempoEspera/numeroProcessos);
 	}
 
 	@Override
@@ -339,15 +380,19 @@ public class SeuSO extends SO {
 		
 		switch (e) {
 			case  FIRST_COME_FIRST_SERVED:
+			escalonadorEscolhido = 0;
 			break;
 
 			case  SHORTEST_JOB_FIRST:
+			escalonadorEscolhido = 1;
 			break;
 
 			case SHORTEST_REMANING_TIME_FIRST :
+			escalonadorEscolhido = 2;
 			break;
 			
 			case ROUND_ROBIN_QUANTUM_5 :
+			escalonadorEscolhido = 3;
 			break;
 		}
 	}
