@@ -16,6 +16,7 @@ public class SeuSO extends SO {
 	int criaIdProcesso = 0;    //usado para criar o id de processo na ordem certa na função "criaProcesso"
 
 	List<PCB> prontos = new LinkedList<PCB>();     //processos prontos para serem executados
+	PCB estadopronto = null; //processo no ESTADO pronto
 	List<PCB> esperando = new LinkedList<PCB>();    //processos esperando operacaoES
 	List<PCB> terminados = new LinkedList<PCB>();    //processos terminados
 	
@@ -28,7 +29,7 @@ public class SeuSO extends SO {
 	//////////////////////////////////////////////////////////////////////
 
 	public void verificaEsperando() {
-        if(esperando != null) {
+        if(!esperando.isEmpty()) {
 			for(PCB p : esperando) {
 				Operacao aux2 = null;
 				OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];       //Operacao atual (com certeza ES)
@@ -59,7 +60,7 @@ public class SeuSO extends SO {
 					}
 
 					if(aux2 == null) {   //tenho q colocar na lista de terminados e tirar da esperando
-						System.out.println("\naux2 deu null aqui\n");
+						//System.out.println("\naux2 deu null aqui\n");
 						esperando.remove(p);     //tira da lista de esperando
 						terminados.add(p);    //coloca na lista de terminados
 						p.estado = Estado.TERMINADO;
@@ -274,6 +275,58 @@ public class SeuSO extends SO {
 			}
 			//return executandoCPU.codigo[executandoCPU.contadorDePrograma-1];
 			return nextOP.codigo[nextOP.contadorDePrograma];
+
+		} else if(!prontos.isEmpty()) {    //nesse caso executandoCPU estava vazio
+			executandoCPU = prontos.get(0);
+			prontos.remove(executandoCPU);
+			Operacao resposta = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];
+			executandoCPU.contadorDePrograma++;
+			
+			//agora devemos decidir entre manter o PCB na cpu ou realoca-lo
+			if(executandoCPU.contadorDePrograma == executandoCPU.codigo.length) {
+				//processo acabou e deve ser mandado para terminados
+				executandoCPU.estado = Estado.TERMINADO;
+				terminados.add(executandoCPU);
+				executandoCPU = null;
+			} else {
+					Operacao ajuda = executandoCPU.codigo[executandoCPU.contadorDePrograma];
+					if(ajuda instanceof OperacaoES) {
+						OperacaoES ajudaES = (OperacaoES) executandoCPU.codigo[executandoCPU.contadorDePrograma];
+						switch (ajudaES.idDispositivo) {
+							case 0 :
+								listaD0.add(ajudaES);
+								esperando.add(executandoCPU);
+								executandoCPU = null;
+							break;
+		
+							case 1 :
+								listaD1.add(ajudaES);
+								esperando.add(executandoCPU);
+								executandoCPU = null;
+							break;
+		
+							case 2 :
+								listaD2.add(ajudaES);
+								esperando.add(executandoCPU);
+								executandoCPU = null;
+							break;
+		
+							case 3 :
+								listaD3.add(ajudaES);
+								esperando.add(executandoCPU);
+								executandoCPU = null;
+							break;
+		
+							case 4 :
+								listaD4.add(ajudaES);
+								esperando.add(executandoCPU);
+								executandoCPU = null;
+							break;
+						}
+					} //o else nao vai existir pq se a proxima operacao for de CPU o processo vai continuar na CPU
+			}
+			
+			return resposta;
 		}
 			return null;
 	}
@@ -285,54 +338,54 @@ public class SeuSO extends SO {
 		//Verificar processos criados e colocar em seu devido estado/fila	
 		if(pcbaux != null)	{
 			pcbaux.estado = Estado.PRONTO;
-			prontos.add(pcbaux);
+			estadopronto = pcbaux;
 			pcbaux = null;
 		}
 
-		verificaEsperando(); //arruma todas as listas dos dispositivos de ES
-
-		if(!prontos.isEmpty()) {
+		if(estadopronto != null) {  //estadopronto.codigo[estadopronto.contadorDePrograma]
 			
 			//se o indice no contador de programa for uma operacao de ES
-			if(prontos.get(0).codigo[prontos.get(0).contadorDePrograma] instanceof OperacaoES) {
-				OperacaoES aux = (OperacaoES) prontos.get(0).codigo[prontos.get(0).contadorDePrograma];
+			if(estadopronto.codigo[estadopronto.contadorDePrograma] instanceof OperacaoES) {
+				OperacaoES aux = (OperacaoES) estadopronto.codigo[estadopronto.contadorDePrograma];
 				int aux2 = aux.idDispositivo;   //aux 2 eh o dispositivo da operacaoES
 				switch (aux2) {
 					case 0 :
 						listaD0.add(aux);
-						esperando.add(prontos.get(0));
-						prontos.remove(prontos.get(0));
+						esperando.add(estadopronto);
+						estadopronto = null;
 					break;
 
 					case 1 :
 						listaD1.add(aux);
-						esperando.add(prontos.get(0));
-						prontos.remove(prontos.get(0));
+						esperando.add(estadopronto);
+						estadopronto = null;
 					break;
 
 					case 2 :
 						listaD2.add(aux);
-						esperando.add(prontos.get(0));
-						prontos.remove(prontos.get(0));
+						esperando.add(estadopronto);
+						estadopronto = null;
 					break;
 
 					case 3 :
 						listaD3.add(aux);
-						esperando.add(prontos.get(0));
-						prontos.remove(prontos.get(0));
+						esperando.add(estadopronto);
+						estadopronto = null;
 					break;
 
 					case 4 :
 						listaD4.add(aux);
-						esperando.add(prontos.get(0));
-						prontos.remove(prontos.get(0));
+						esperando.add(estadopronto);
+						estadopronto = null;
 					break;
 				}
 			} else {
-				executandoCPU = prontos.get(0);
-				prontos.remove(prontos.get(0));
+				prontos.add(estadopronto);
+				estadopronto = null;
 			}
 		}
+
+		verificaEsperando(); //arruma todas as listas dos dispositivos de ES
 
 		//AGORA TEMOS QUE CHAMAR O ESCALONADOR EM QUESTAO PARA ORGANIZAR A FILA DE PRONTOS
 
