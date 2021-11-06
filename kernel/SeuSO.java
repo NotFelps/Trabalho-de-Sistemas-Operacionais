@@ -32,7 +32,7 @@ public class SeuSO extends SO {
 			for(PCB p : esperando) {
 				Operacao aux2 = null;
 				OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];       //Operacao atual (com certeza ES)
-				if(p.contadorDePrograma != (p.codigo.length-1) ) aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
+				if((p.contadorDePrograma) != (p.codigo.length-1) ) aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
 				if(aux.ciclos <= 0) {    //operacao acabou e processo precisa mudar de lugar
 
 					//esse switch zera as variaveis auxiliares do dispositivo cuja ES ja acabou
@@ -59,6 +59,7 @@ public class SeuSO extends SO {
 					}
 
 					if(aux2 == null) {   //tenho q colocar na lista de terminados e tirar da esperando
+						System.out.println("\naux2 deu null aqui\n");
 						esperando.remove(p);     //tira da lista de esperando
 						terminados.add(p);    //coloca na lista de terminados
 						p.estado = Estado.TERMINADO;
@@ -96,7 +97,9 @@ public class SeuSO extends SO {
 					}
 
 					if(aux2 instanceof Soma || aux2 instanceof Carrega) {      //se for uma operacao de soma ou carrega deve-se colocar o processo na fila de prontos
+						System.out.print("PASSOU AQUIIIIIIII");
 						esperando.remove(p);
+						p.contadorDePrograma++;
 						prontos.add(p);
 						p.estado = Estado.PRONTO;
 					}
@@ -214,13 +217,70 @@ public class SeuSO extends SO {
 
 	@Override
 	protected Operacao proximaOperacaoCPU() {	//Apenas retorna a operação atual que está dentro de "executandoCPU"
-		if(executandoCPU != null) return executandoCPU.codigo[executandoCPU.contadorDePrograma];
-		return null;
+		if(executandoCPU != null) {    //tem processo na CPU
+			PCB nextOP = executandoCPU;   //eh o retorno da funcao
+			executandoCPU.contadorDePrograma++;
+
+			//Agora eh necessario ver se o processo ainda vai usar a cpu ou se vai pra lista de esperando/terminado
+			if(executandoCPU.contadorDePrograma == executandoCPU.codigo.length) {  //era a ultima operacao do processo
+				PCB terminado = executandoCPU;
+				terminado.estado = Estado.TERMINADO;
+				terminados.add(terminado);
+				executandoCPU = null;
+				//Aqui colocamos o processo na lista de terminados e limpamos a CPU
+
+			} else {
+				Operacao nextRealocar = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];
+				if(nextRealocar instanceof OperacaoES) {
+					OperacaoES nextRealocarES = (OperacaoES) nextRealocar;
+					switch(nextRealocarES.idDispositivo) {
+						
+						case 0 :
+							listaD0.add(nextRealocarES);
+							esperando.add(executandoCPU);
+							executandoCPU.estado = Estado.ESPERANDO;
+							executandoCPU = null;
+							break;
+
+						case 1 :
+							listaD1.add(nextRealocarES);
+							esperando.add(executandoCPU);
+							executandoCPU.estado = Estado.ESPERANDO;
+							executandoCPU = null;
+							break;
+
+						case 2 :
+							listaD2.add(nextRealocarES);
+							esperando.add(executandoCPU);
+							executandoCPU.estado = Estado.ESPERANDO;
+							executandoCPU = null;
+							break;
+
+						case 3 :
+							listaD3.add(nextRealocarES);
+							esperando.add(executandoCPU);
+							executandoCPU.estado = Estado.ESPERANDO;
+							executandoCPU = null;
+							break;
+
+						case 4 :
+							listaD4.add(nextRealocarES);
+							esperando.add(executandoCPU);
+							executandoCPU.estado = Estado.ESPERANDO;
+							executandoCPU = null;
+							break;
+					}
+				}      //se nao for uma operacaoES, o processo deve continuar utilizando a CPU, por isso nao se deve mexer em nada	
+			}
+			//return executandoCPU.codigo[executandoCPU.contadorDePrograma-1];
+			return nextOP.codigo[nextOP.contadorDePrograma];
+		}
+			return null;
 	}
 
 	@Override
 	protected void executaCicloKernel() {
-		
+
 		processoCriado = null;
 		//Verificar processos criados e colocar em seu devido estado/fila	
 		if(pcbaux != null)	{

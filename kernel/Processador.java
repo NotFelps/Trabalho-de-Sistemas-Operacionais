@@ -18,8 +18,7 @@ public class Processador {
 			registradores[s.registradorTotal] = a + b;
 		} else if (op == null) {
 			return;
-		} else
-		{
+		} else {
 			throw new RuntimeException("Operacão Inválida");
 		}
 	}
