@@ -15,6 +15,7 @@ public class PCB implements Comparable<PCB> { //sugestão do prof : public class
 	int tempoResposta = 0;   //tempo que o PCB fica na lista de prontos ate ir pra CPU pela primeira vez
 	int tempoEspera = 0;     //soma dos tempos em que o PCB fica na lista de prontos
 	int jaFoiCPU = 0;      // 0 = nunca foi na CPU ; 1 = ja foi na CPU
+	int rRobin = 0;     // 0 
 
 	/*	
 	professor sugere colocar algo como : 

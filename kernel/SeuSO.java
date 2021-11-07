@@ -24,6 +24,7 @@ public class SeuSO extends SO {
 	int numeroProcessos;
 	PCB executandoCPU;
 	Integer processoCriado;
+	int metodochamado = 0;
 
 	public void adicionaEspera() {     //adiciona o contador tempoEspera dos processos que estao na lista de prontos
 		if(!prontos.isEmpty()) {
@@ -152,6 +153,8 @@ public class SeuSO extends SO {
 		pcbnovo = pcb;
 		numeroProcessos++;
 		pcb.cicloPronto = cicloAtual;
+		if(escalonadorEscolhido == 3) pcb.rRobin = 1;
+		
 	}
 
 	@Override
@@ -233,7 +236,10 @@ public class SeuSO extends SO {
 	}
 
 	@Override
-	protected Operacao proximaOperacaoCPU() {	//Apenas retorna a operação atual que está dentro de "executandoCPU"
+	protected Operacao proximaOperacaoCPU() {	//Retorna a operação atual que está dentro de "executandoCPU"
+		
+		
+		//System.out.println(metodochamado+"\n");
 		if(executandoCPU != null) {    //tem processo na CPU, e se eu mantive ele na CPU, eh pq a operacao atual eh de CPU
 			Operacao nextOP = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];   //eh o retorno da funcao
 			executandoCPU.contadorDePrograma++;
@@ -297,20 +303,31 @@ public class SeuSO extends SO {
 							executandoCPU = null;
 							break;
 					}
-				}      //se nao for uma operacaoES, o processo deve continuar utilizando a CPU, por isso nao se deve mexer em nada	
+				} else if((executandoCPU.rRobin == 1) && (executandoCPU.contadorBurst == 5)) {
+					
+					executandoCPU.contadorBurst = 0;
+					//System.out.println("PREEMPTADO!!");
+					prontos.add(executandoCPU);
+					/* if(executandoCPU.jaFoiCPU == 0) {
+						executandoCPU.tempoResposta = executandoCPU.tempoEspera;
+					} */
+					//trocasContexto++;
+					executandoCPU = null;
+				}	
 			}
 			//return executandoCPU.codigo[executandoCPU.contadorDePrograma-1];
 			//return nextOP.codigo[nextOP.contadorDePrograma];
 			return nextOP;
 
 		} else if(!prontos.isEmpty()) {    //nesse caso executandoCPU estava vazio
+			//metodochamado++;
 			executandoCPU = prontos.get(0);
 			executandoCPU.contadorBurst++;
 			if(executandoCPU.jaFoiCPU == 0) {
 				executandoCPU.jaFoiCPU = 1;
 				executandoCPU.tempoResposta = executandoCPU.tempoEspera;
-			} 
-			trocasContexto++;
+			} else trocasContexto++;
+			
 			prontos.remove(executandoCPU);
 			Operacao resposta = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];
 			executandoCPU.contadorDePrograma++;
@@ -442,7 +459,8 @@ public class SeuSO extends SO {
 			case 2 :
 			break;
 
-			case 3 :
+			case 3 :   //cada processo tem de 5 em 5 ciclos para fazer sua operacao (Round Robin)
+
 			break;
 		}
 
@@ -541,7 +559,7 @@ public class SeuSO extends SO {
 	
 	@Override
 	protected int trocasContexto() {
-		return trocasContexto-1;
+		return trocasContexto;
 	}
 
 	//////////////////////////////////////////////////////////
