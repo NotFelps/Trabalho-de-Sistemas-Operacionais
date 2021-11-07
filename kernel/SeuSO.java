@@ -113,8 +113,8 @@ public class SeuSO extends SO {
 						//System.out.print("PASSOU AQUIIIIIIII");
 						esperando.remove(p);
 						p.contadorDePrograma++;
-						prontos.add(p);
 						p.estado = Estado.PRONTO;
+						prontos.add(p);
 					}
 				}
 			}
@@ -154,7 +154,7 @@ public class SeuSO extends SO {
 		numeroProcessos++;
 		pcb.cicloPronto = cicloAtual;
 		if(escalonadorEscolhido == 3) pcb.rRobin = 1;
-		
+		if(escalonadorEscolhido == 2) pcb.srtf = 1;
 	}
 
 	@Override
@@ -246,6 +246,7 @@ public class SeuSO extends SO {
 
 			//arrumando o valor do proximo chute
 			executandoCPU.contadorBurst++;
+			executandoCPU.remainingTime--;
 
 			//Agora eh necessario ver se o processo ainda vai usar a cpu ou se vai pra lista de esperando/terminado
 			if(executandoCPU.contadorDePrograma == executandoCPU.codigo.length) {  //era a ultima operacao do processo
@@ -264,42 +265,43 @@ public class SeuSO extends SO {
 					//processo acabou seu burst de CPU, portanto vou atualizar seu chute
 					executandoCPU.proxChuteTamBurstCPU = ((executandoCPU.proxChuteTamBurstCPU+executandoCPU.contadorBurst)/2);
 					executandoCPU.contadorBurst = 0;
+					executandoCPU.remainingTime = executandoCPU.proxChuteTamBurstCPU;
 
 					OperacaoES nextRealocarES = (OperacaoES) nextRealocar;
 					switch(nextRealocarES.idDispositivo) {
 						
 						case 0 :
 							listaD0.add(nextRealocarES);
-							esperando.add(executandoCPU);
 							executandoCPU.estado = Estado.ESPERANDO;
+							esperando.add(executandoCPU);
 							executandoCPU = null;
 							break;
 
 						case 1 :
 							listaD1.add(nextRealocarES);
-							esperando.add(executandoCPU);
 							executandoCPU.estado = Estado.ESPERANDO;
+							esperando.add(executandoCPU);
 							executandoCPU = null;
 							break;
 
 						case 2 :
 							listaD2.add(nextRealocarES);
-							esperando.add(executandoCPU);
 							executandoCPU.estado = Estado.ESPERANDO;
+							esperando.add(executandoCPU);
 							executandoCPU = null;
 							break;
 
 						case 3 :
 							listaD3.add(nextRealocarES);
-							esperando.add(executandoCPU);
 							executandoCPU.estado = Estado.ESPERANDO;
+							esperando.add(executandoCPU);
 							executandoCPU = null;
 							break;
 
 						case 4 :
 							listaD4.add(nextRealocarES);
-							esperando.add(executandoCPU);
 							executandoCPU.estado = Estado.ESPERANDO;
+							esperando.add(executandoCPU);
 							executandoCPU = null;
 							break;
 					}
@@ -322,7 +324,9 @@ public class SeuSO extends SO {
 		} else if(!prontos.isEmpty()) {    //nesse caso executandoCPU estava vazio
 			//metodochamado++;
 			executandoCPU = prontos.get(0);
+			executandoCPU.estado = Estado.EXECUTANDO;
 			executandoCPU.contadorBurst++;
+			executandoCPU.remainingTime--;
 			if(executandoCPU.jaFoiCPU == 0) {
 				executandoCPU.jaFoiCPU = 1;
 				executandoCPU.tempoResposta = executandoCPU.tempoEspera;
@@ -347,36 +351,42 @@ public class SeuSO extends SO {
 						//processo acabou seu burst de CPU, portanto vou atualizar seu chute
 						executandoCPU.proxChuteTamBurstCPU = ((executandoCPU.proxChuteTamBurstCPU+executandoCPU.contadorBurst)/2);
 						executandoCPU.contadorBurst = 0;
+						executandoCPU.remainingTime = executandoCPU.proxChuteTamBurstCPU;
 
 						OperacaoES ajudaES = (OperacaoES) executandoCPU.codigo[executandoCPU.contadorDePrograma];
 						switch (ajudaES.idDispositivo) {
 							case 0 :
 								listaD0.add(ajudaES);
 								esperando.add(executandoCPU);
+								executandoCPU.estado = 	Estado.ESPERANDO;
 								executandoCPU = null;
 							break;
 		
 							case 1 :
 								listaD1.add(ajudaES);
 								esperando.add(executandoCPU);
+								executandoCPU.estado = 	Estado.ESPERANDO;
 								executandoCPU = null;
 							break;
 		
 							case 2 :
 								listaD2.add(ajudaES);
 								esperando.add(executandoCPU);
+								executandoCPU.estado = 	Estado.ESPERANDO;
 								executandoCPU = null;
 							break;
 		
 							case 3 :
 								listaD3.add(ajudaES);
 								esperando.add(executandoCPU);
+								executandoCPU.estado = 	Estado.ESPERANDO;
 								executandoCPU = null;
 							break;
 		
 							case 4 :
 								listaD4.add(ajudaES);
 								esperando.add(executandoCPU);
+								executandoCPU.estado = 	Estado.ESPERANDO;
 								executandoCPU = null;
 							break;
 						}
@@ -408,30 +418,35 @@ public class SeuSO extends SO {
 				switch (aux2) {
 					case 0 :
 						listaD0.add(aux);
+						estadopronto.estado = Estado.ESPERANDO;
 						esperando.add(estadopronto);
 						estadopronto = null;
 					break;
 
 					case 1 :
 						listaD1.add(aux);
+						estadopronto.estado = Estado.ESPERANDO;
 						esperando.add(estadopronto);
 						estadopronto = null;
 					break;
 
 					case 2 :
 						listaD2.add(aux);
+						estadopronto.estado = Estado.ESPERANDO;
 						esperando.add(estadopronto);
 						estadopronto = null;
 					break;
 
 					case 3 :
 						listaD3.add(aux);
+						estadopronto.estado = Estado.ESPERANDO;
 						esperando.add(estadopronto);
 						estadopronto = null;
 					break;
 
 					case 4 :
 						listaD4.add(aux);
+						estadopronto.estado = Estado.ESPERANDO;
 						esperando.add(estadopronto);
 						estadopronto = null;
 					break;
@@ -456,7 +471,21 @@ public class SeuSO extends SO {
 				Collections.sort(prontos);
 				break;
 
-			case 2 :
+			case 2 :   //deve verificar em cada cicloKernel qual a operacao com o menor remainingTime, tanto a operacao que esta na CPU quanto as da lista de pronto
+			if(!prontos.isEmpty()) {
+				Collections.sort(prontos);
+				if(executandoCPU != null) {
+					PCB compara = prontos.get(0);
+					if(compara.remainingTime < executandoCPU.remainingTime) {
+						executandoCPU.proxChuteTamBurstCPU = ((executandoCPU.proxChuteTamBurstCPU+executandoCPU.contadorBurst)/2);
+						executandoCPU.contadorBurst = 0;
+						executandoCPU.remainingTime = executandoCPU.proxChuteTamBurstCPU;
+						prontos.add(executandoCPU);
+						executandoCPU = null;
+					}
+				}
+			}
+
 			break;
 
 			case 3 :   //cada processo tem de 5 em 5 ciclos para fazer sua operacao (Round Robin)

@@ -16,7 +16,7 @@ public class PCB implements Comparable<PCB> { //sugestão do prof : public class
 	int tempoEspera = 0;     //soma dos tempos em que o PCB fica na lista de prontos
 	int jaFoiCPU = 0;      // 0 = nunca foi na CPU ; 1 = ja foi na CPU
 	int rRobin = 0;     // 0 
-
+	int srtf = 0;
 	/*	
 	professor sugere colocar algo como : 
 
@@ -32,7 +32,13 @@ public class PCB implements Comparable<PCB> { //sugestão do prof : public class
 	*/
 	@Override
 	public int compareTo(PCB outro) {
-		if(this.proxChuteTamBurstCPU < outro.proxChuteTamBurstCPU) {
+		if(this.srtf == 1) {
+			if(this.srtf < outro.srtf) {
+				return -1;
+			} else if(this.srtf > outro.srtf) {
+				return 1;
+			}
+		} else if(this.proxChuteTamBurstCPU < outro.proxChuteTamBurstCPU) {
 			return -1;
 		} else if(this.proxChuteTamBurstCPU > outro.proxChuteTamBurstCPU) {
 			return 1;
