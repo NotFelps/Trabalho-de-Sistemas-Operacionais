@@ -328,9 +328,11 @@ public class SeuSO extends SO {
 			executandoCPU.contadorBurst++;
 			executandoCPU.remainingTime--;
 			if(executandoCPU.jaFoiCPU == 0) {
-				executandoCPU.jaFoiCPU = 1;
+				//executandoCPU.jaFoiCPU = 1;
 				executandoCPU.tempoResposta = executandoCPU.tempoEspera;
-			} else trocasContexto++;
+			} 
+			trocasContexto++;
+			
 			
 			prontos.remove(executandoCPU);
 			Operacao resposta = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];
@@ -588,7 +590,7 @@ public class SeuSO extends SO {
 	
 	@Override
 	protected int trocasContexto() {
-		return trocasContexto;
+		return trocasContexto-1;
 	}
 
 	//////////////////////////////////////////////////////////
