@@ -25,12 +25,21 @@ public class SeuSO extends SO {
 	PCB executandoCPU;
 	Integer processoCriado;
 
+	public void adicionaEspera() {     //adiciona o contador tempoEspera dos processos que estao na lista de prontos
+		if(!prontos.isEmpty()) {
+			for(PCB p : prontos) {
+				p.tempoEspera++;
+			}
+		}
+	}
 
 	//////////////////////////////////////////////////////////////////////
 
 	public void verificaEsperando() {
         if(!esperando.isEmpty()) {
-			for(PCB p : esperando) {
+			//for(PCB p : esperando) {
+			for(int i = 0; i<esperando.size();i++) {
+				PCB p = esperando.get(i);
 				Operacao aux2 = null;
 				OperacaoES aux = (OperacaoES) p.codigo[p.contadorDePrograma];       //Operacao atual (com certeza ES)
 				if((p.contadorDePrograma) != (p.codigo.length-1) ) aux2 = (Operacao) p.codigo[p.contadorDePrograma+1]; // Proxima operacao do processador (pode ser null)
@@ -64,6 +73,8 @@ public class SeuSO extends SO {
 						esperando.remove(p);     //tira da lista de esperando
 						terminados.add(p);    //coloca na lista de terminados
 						p.estado = Estado.TERMINADO;
+						p.cicloTerminado = cicloAtual;
+						p.tempoRetorno = (p.cicloTerminado-p.cicloPronto);
 						//processo finalizado   
 					}
 
@@ -98,7 +109,7 @@ public class SeuSO extends SO {
 					}
 
 					if(aux2 instanceof Soma || aux2 instanceof Carrega) {      //se for uma operacao de soma ou carrega deve-se colocar o processo na fila de prontos
-						System.out.print("PASSOU AQUIIIIIIII");
+						//System.out.print("PASSOU AQUIIIIIIII");
 						esperando.remove(p);
 						p.contadorDePrograma++;
 						prontos.add(p);
@@ -140,11 +151,16 @@ public class SeuSO extends SO {
 		pcb.codigo = codigo;
 		pcbnovo = pcb;
 		numeroProcessos++;
+		pcb.cicloPronto = cicloAtual;
 	}
 
 	@Override
 	protected void trocaContexto(PCB pcbAtual, PCB pcbProximo) {
 		executandoCPU = pcbProximo;
+		if(executandoCPU.jaFoiCPU == 0) {
+			executandoCPU.jaFoiCPU = 1;
+			executandoCPU.tempoResposta = executandoCPU.tempoEspera;
+		}
 		processador.registradores = pcbProximo.registradores;
 		prontos.add(pcbAtual); //OLHAR ESSA PARTE COM MAIS ATENCAO
 		trocasContexto++;
@@ -218,13 +234,18 @@ public class SeuSO extends SO {
 
 	@Override
 	protected Operacao proximaOperacaoCPU() {	//Apenas retorna a operação atual que está dentro de "executandoCPU"
-		if(executandoCPU != null) {    //tem processo na CPU
-			PCB nextOP = executandoCPU;   //eh o retorno da funcao
+		if(executandoCPU != null) {    //tem processo na CPU, e se eu mantive ele na CPU, eh pq a operacao atual eh de CPU
+			Operacao nextOP = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];   //eh o retorno da funcao
 			executandoCPU.contadorDePrograma++;
+
+			//arrumando o valor do proximo chute
+			executandoCPU.contadorBurst++;
 
 			//Agora eh necessario ver se o processo ainda vai usar a cpu ou se vai pra lista de esperando/terminado
 			if(executandoCPU.contadorDePrograma == executandoCPU.codigo.length) {  //era a ultima operacao do processo
 				PCB terminado = executandoCPU;
+				terminado.cicloTerminado = cicloAtual;
+				terminado.tempoRetorno = (terminado.cicloTerminado-terminado.cicloPronto);
 				terminado.estado = Estado.TERMINADO;
 				terminados.add(terminado);
 				executandoCPU = null;
@@ -233,6 +254,11 @@ public class SeuSO extends SO {
 			} else {
 				Operacao nextRealocar = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];
 				if(nextRealocar instanceof OperacaoES) {
+
+					//processo acabou seu burst de CPU, portanto vou atualizar seu chute
+					executandoCPU.proxChuteTamBurstCPU = ((executandoCPU.proxChuteTamBurstCPU+executandoCPU.contadorBurst)/2);
+					executandoCPU.contadorBurst = 0;
+
 					OperacaoES nextRealocarES = (OperacaoES) nextRealocar;
 					switch(nextRealocarES.idDispositivo) {
 						
@@ -274,10 +300,17 @@ public class SeuSO extends SO {
 				}      //se nao for uma operacaoES, o processo deve continuar utilizando a CPU, por isso nao se deve mexer em nada	
 			}
 			//return executandoCPU.codigo[executandoCPU.contadorDePrograma-1];
-			return nextOP.codigo[nextOP.contadorDePrograma];
+			//return nextOP.codigo[nextOP.contadorDePrograma];
+			return nextOP;
 
 		} else if(!prontos.isEmpty()) {    //nesse caso executandoCPU estava vazio
 			executandoCPU = prontos.get(0);
+			executandoCPU.contadorBurst++;
+			if(executandoCPU.jaFoiCPU == 0) {
+				executandoCPU.jaFoiCPU = 1;
+				executandoCPU.tempoResposta = executandoCPU.tempoEspera;
+			} 
+			trocasContexto++;
 			prontos.remove(executandoCPU);
 			Operacao resposta = (Operacao) executandoCPU.codigo[executandoCPU.contadorDePrograma];
 			executandoCPU.contadorDePrograma++;
@@ -286,11 +319,18 @@ public class SeuSO extends SO {
 			if(executandoCPU.contadorDePrograma == executandoCPU.codigo.length) {
 				//processo acabou e deve ser mandado para terminados
 				executandoCPU.estado = Estado.TERMINADO;
+				executandoCPU.cicloTerminado = cicloAtual;
+				executandoCPU.tempoRetorno = (executandoCPU.cicloTerminado-executandoCPU.cicloPronto);
 				terminados.add(executandoCPU);
 				executandoCPU = null;
 			} else {
 					Operacao ajuda = executandoCPU.codigo[executandoCPU.contadorDePrograma];
 					if(ajuda instanceof OperacaoES) {
+
+						//processo acabou seu burst de CPU, portanto vou atualizar seu chute
+						executandoCPU.proxChuteTamBurstCPU = ((executandoCPU.proxChuteTamBurstCPU+executandoCPU.contadorBurst)/2);
+						executandoCPU.contadorBurst = 0;
+
 						OperacaoES ajudaES = (OperacaoES) executandoCPU.codigo[executandoCPU.contadorDePrograma];
 						switch (ajudaES.idDispositivo) {
 							case 0 :
@@ -386,16 +426,18 @@ public class SeuSO extends SO {
 		}
 
 		verificaEsperando(); //arruma todas as listas dos dispositivos de ES
+		adicionaEspera();
 
 		//AGORA TEMOS QUE CHAMAR O ESCALONADOR EM QUESTAO PARA ORGANIZAR A FILA DE PRONTOS
 
 		switch (escalonadorEscolhido) {
-			case 0 :     //Lista de prontos eh por ordem de chegada, entao nao deve ser arrumada
+			case 0 :     //Lista de prontos eh por ordem de chegada, entao nao deve ser arrumada (FCFS)
 			
-			break;
+				break;
 
-			case 1 :
-			break;
+			case 1 :    //lista de prontos deve ser ordenada em ordem do processo mais curto para o mais longo (SJB)
+				Collections.sort(prontos);
+				break;
 
 			case 2 :
 			break;
@@ -465,25 +507,41 @@ public class SeuSO extends SO {
 
 	@Override
 	protected int tempoEsperaMedio() {
-		return 0;             //TIRAR DO COMENTARIO QUANDO CRIAR A VARIAVEL
-		//return (tempoEspera/numeroProcessos);
+		int tempoEsperaT = 0;
+		int contador = 0;
+		for(PCB aux : terminados) {
+			tempoEsperaT += aux.tempoEspera;
+			contador++;
+		}
+		return (tempoEsperaT/contador);
 	}
 
 	@Override
 	protected int tempoRespostaMedio() {
-		
-		return 0;
+		int tempoResp = 0;
+		int contador = 0;
+		for(PCB aux : terminados) {
+			tempoResp += aux.tempoResposta;
+			contador++;
+		}
+		return (tempoResp/contador);
 	}
 
 	@Override
 	protected int tempoRetornoMedio() {
-		
-		return 0;
+		int mediaTerminados = 0; 
+		int contador = 0;
+		for(PCB aux : terminados) {
+			mediaTerminados = mediaTerminados + aux.tempoRetorno;
+			contador++;
+		}
+		int media = (mediaTerminados/contador);
+		return media;
 	}
 	
 	@Override
 	protected int trocasContexto() {
-		return trocasContexto;
+		return trocasContexto-1;
 	}
 
 	//////////////////////////////////////////////////////////

@@ -12,10 +12,10 @@ import operacoes.Soma;
 
 public abstract class SO {
 
-	//protected int numeroProcessos;
 	protected Processador processador = new Processador();
 	private HashMap<Integer, Operacao[]> novosProcessos = new HashMap<Integer, Operacao[]>();
 	private int contadorCiclos = 0;
+	protected int cicloAtual = contadorCiclos;
 
 	public enum Escalonador {
 		FIRST_COME_FIRST_SERVED, // não preemptivo
@@ -25,7 +25,7 @@ public abstract class SO {
 	}
 
 	public void simula() {
-		while ((!novosProcessos.isEmpty() || temTarefasPendentes()) && (contadorCiclos < 20)) {
+		while (!novosProcessos.isEmpty() || temTarefasPendentes()) {
 			Operacao[] codigo = novosProcessos.get(contadorCiclos);
 
 			if (codigo != null) {
@@ -34,7 +34,7 @@ public abstract class SO {
 			}
 
 			executaUmCiclo();
-			imprimeEstado();
+			//imprimeEstado();
 		}
 
 		imprimeEstatisticas();
@@ -42,10 +42,10 @@ public abstract class SO {
 
 	private void imprimeEstatisticas() {
 		System.out.println();
-		System.out.println("============ Estatísticas ============");
-		System.out.println("Tempo de retorno médio: " + tempoRetornoMedio());
-		System.out.println("Tempo de resposta médio: " + tempoRespostaMedio());
-		System.out.println("Tempo de espera médio: " + tempoEsperaMedio());
+		System.out.println("============ Estatisticas ============");
+		System.out.println("Tempo de retorno medio: " + tempoRetornoMedio());
+		System.out.println("Tempo de resposta medio: " + tempoRespostaMedio());
+		System.out.println("Tempo de espera medio: " + tempoEsperaMedio());
 		System.out.println("Trocas de contexto: " + trocasContexto());
 		System.out.println("======================================");
 	}
@@ -86,6 +86,7 @@ public abstract class SO {
 		executaUmCicloCPU();
 		executaUmCicloES();
 		contadorCiclos++;
+		cicloAtual++;
 	}
 
 	private void executaUmCicloCPU() {
